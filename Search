@@ -1,0 +1,52 @@
+Public Sub SubjectFilter()
+  Dim Folder As Outlook.MAPIFolder
+  Dim obj As Object
+  Dim Mail As Outlook.MailItem
+  Dim View As Outlook.View
+  Dim Find As String, DASL As String
+  Dim Filter As String
+  Dim ViewName As String
+  Dim Created As Boolean
+  
+  'Name of your custom view
+  ViewName = "My-View"
+  
+  Set obj = Application.ActiveExplorer.Selection(1)
+  
+  If Not TypeOf obj Is Outlook.MailItem Then
+    'this sample is for emails
+    Exit Sub
+  End If
+  
+  Set Mail = obj
+  Set Folder = Mail.Parent
+  
+  '[Property] = [Value]
+  Filter = "#0 = '#1'"
+  
+  'DASL-Name of the property we want to search
+  DASL = "http://schemas.microsoft.com/mapi/proptag/0x0037001F"
+  
+  'Value to search for
+  Find = Mail.Subject
+  
+  'Find or create the view
+  Set View = Folder.CurrentView
+  If LCase$(View.Name) <> LCase$(ViewName) Then
+    Set View = Folder.Views(ViewName)
+    If View Is Nothing Then
+      Set View = Folder.Views.Add(ViewName, olTableView, olViewSaveOptionAllFoldersOfType)
+      Created = True
+    End If
+  End If
+  
+  'Apply filter 
+  DASL = Chr(34) & DASL & Chr(34)
+  Filter = Replace(Filter, "#0", DASL)
+  Filter = "(" & Filter & ")"
+  Filter = Replace(Filter, "#1", Find)
+  
+  View.Filter = Filter
+  View.Apply
+  If Created Then View.Save
+End Sub
