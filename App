@@ -1,0 +1,19 @@
+# Import `load_workbook` module from `openpyxl`
+from openpyxl import load_workbook
+import tkinter
+from tkinter import messagebox
+top=tkinter.Tk()
+wb = load_workbook('AR.xlsx')
+
+# Get sheet names
+sheet = wb['Sheet1']
+def hello():
+   messagebox.showinfo("Display", sheet.cell(row=3, column=7).value)
+
+B1 = tkinter.Button(top, text = "Display", command = hello)
+B1.pack()
+
+top.mainloop()
+
+# Load in the workbook
+
