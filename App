@@ -1,19 +1,37 @@
-# Import `load_workbook` module from `openpyxl`
-from openpyxl import load_workbook
+
+import xlrd
 import tkinter
-from tkinter import messagebox
-top=tkinter.Tk()
-wb = load_workbook('AR.xlsx')
+import xlwt
+from xlwt import Workbook
+import re
 
-# Get sheet names
-sheet = wb['Sheet1']
-def hello():
-   messagebox.showinfo("Display", sheet.cell(row=3, column=7).value)
 
-B1 = tkinter.Button(top, text = "Display", command = hello)
-B1.pack()
 
-top.mainloop()
+loc=("./ME.xlsx")
 
-# Load in the workbook
+wbo = Workbook()
+Sheet1 = wbo.add_sheet('Sheet1')
+
+
+wb = xlrd.open_workbook(loc)
+sheet = wb.sheet_by_index(0)
+row = sheet.row(0)  # 1st row
+sheet.cell_value(0, 0)
+for i in range (1,sheet.nrows):
+    Sheet1.write(i, 0, sheet.cell_value(i, 0))
+    ind=sheet.cell_value(i, 4).index("ME-")+3
+
+    Sheet1.write(i, 1, "ME-"+sheet.cell_value(i, 4)[ind])
+    if "Monitor" in sheet.cell_value(i, 6):
+        Sheet1.write(i, 2, "Monitor")
+    elif "close" in sheet.cell_value(i, 6):
+        Sheet1.write(i, 2, "close")
+    else:
+        Sheet1.write(i, 2, "Open")
+
+    print(sheet.cell_value(i, 6).split(' '))
+    wbo.save('fin.xls')
+
+
+
 
