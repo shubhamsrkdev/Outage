@@ -28,8 +28,8 @@ for i in range (1,sheet.nrows):
         Sheet1.write(i, 2, "close")
     else:
         Sheet1.write(i, 2, "Open")
-
-    print(sheet.cell_value(i, 6).split(' '))
+    str_list = filter(None, sheet.cell_value(i, 6).split('\r\n'))
+    print(list(str_list))
     wbo.save('fin.xls')
 
 
