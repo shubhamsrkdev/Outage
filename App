@@ -28,8 +28,17 @@ for i in range (1,sheet.nrows):
         Sheet1.write(i, 2, "close")
     else:
         Sheet1.write(i, 2, "Open")
-    str_list = filter(None, sheet.cell_value(i, 6).split('\r\n'))
-    print(list(str_list))
+    str_list = list(filter(None, sheet.cell_value(i, 6).split('\r\n')))
+    if 'Event description & impact' in str_list:
+        Sheet1.write(i, 3, str_list[str_list.index('Event description & impact')+1])
+    if 'Start date/time (GMT)' in str_list:
+        Sheet1.write(i, 4, str_list[str_list.index('Start date/time (GMT)') + 1])
+    if 'End date/time (GMT)' in str_list:
+        Sheet1.write(i, 5, str_list[str_list.index('End date/time (GMT)') + 1])
+    if 'Customers impacted' in str_list:
+        Sheet1.write(i, 6, str_list[str_list.index('Customers impacted') + 1])
+    if 'Ticket reference' in str_list:
+        Sheet1.write(i, 7, str_list[str_list.index('Ticket reference') + 1])
     wbo.save('fin.xls')
 
 
