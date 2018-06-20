@@ -1,46 +1,58 @@
-
 import xlrd
 import tkinter
 import xlwt
 from xlwt import Workbook
 import re
-
-
-
 loc=("./ME.xlsx")
-
+l=[]
+wbi = xlrd.open_workbook(loc)
+sheeti = wbi.sheet_by_index(0)
+rowi = sheeti.row(0)  # 1st row
+sheeti.cell_value(0, 0)
+for j in range (1,sheeti.nrows):
+    l.append("Re: "+sheeti.cell_value(j, 4))
 wbo = Workbook()
-Sheet1 = wbo.add_sheet('Sheet1')
-
-
+Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True)
 wb = xlrd.open_workbook(loc)
 sheet = wb.sheet_by_index(0)
 row = sheet.row(0)  # 1st row
 sheet.cell_value(0, 0)
+p=1
 for i in range (1,sheet.nrows):
-    Sheet1.write(i, 0, sheet.cell_value(i, 0))
+    Sheet1.write(p, 0, sheet.cell_value(i, 0))
     ind=sheet.cell_value(i, 4).index("ME-")+3
 
-    Sheet1.write(i, 1, "ME-"+sheet.cell_value(i, 4)[ind])
+    Sheet1.write(p, 1, "ME-"+sheet.cell_value(i, 4)[ind])
     if "Monitor" in sheet.cell_value(i, 6):
-        Sheet1.write(i, 2, "Monitor")
+        Sheet1.write(p, 2, "Monitor")
     elif "close" in sheet.cell_value(i, 6):
-        Sheet1.write(i, 2, "close")
+        Sheet1.write(p, 2, "close")
     else:
-        Sheet1.write(i, 2, "Open")
+        Sheet1.write(p, 2, "Open")
     str_list = list(filter(None, sheet.cell_value(i, 6).split('\r\n')))
     if 'Event description & impact' in str_list:
-        Sheet1.write(i, 3, str_list[str_list.index('Event description & impact')+1])
+        Sheet1.write(p, 3, str_list[str_list.index('Event description & impact')+1])
     if 'Start date/time (GMT)' in str_list:
-        Sheet1.write(i, 4, str_list[str_list.index('Start date/time (GMT)') + 1])
+        Sheet1.write(p, 4, str_list[str_list.index('Start date/time (GMT)') + 1])
     if 'End date/time (GMT)' in str_list:
-        Sheet1.write(i, 5, str_list[str_list.index('End date/time (GMT)') + 1])
+        Sheet1.write(p, 5, str_list[str_list.index('End date/time (GMT)') + 1])
     if 'Customers impacted' in str_list:
-        Sheet1.write(i, 6, str_list[str_list.index('Customers impacted') + 1])
+        Sheet1.write(p, 6, str_list[str_list.index('Customers impacted') + 1])
     if 'Ticket reference' in str_list:
-        Sheet1.write(i, 7, str_list[str_list.index('Ticket reference') + 1])
+        Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1])
+
+    if sheet.cell_value(i, 4) in l:
+        for o in range (0,9):
+            Sheet1.write(p, o, "")
+        inde = l.index(sheet.cell_value(i, 4))
+        if "Monitor" in sheet.cell_value(i, 6):
+            Sheet1.write(inde+1, 2, "Monitor")
+        elif "close" in sheet.cell_value(i, 6):
+            print ("NO")
+            Sheet1.write(inde+1, 2, "close")
+        else:
+            Sheet1.write(inde+1, 2, "Open")
+        p=p-1
+    p=p+1
+
     wbo.save('fin.xls')
-
-
-
-
