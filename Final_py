@@ -8,12 +8,15 @@ from xlwt import Workbook
 import re
 loc=("AR.xlsx")
 l=[]
+fl=[]
 wbi = xlrd.open_workbook(loc)
+
 sheeti = wbi.sheet_by_index(0)
 rowi = sheeti.row(0)  # 1st row
 sheeti.cell_value(0, 0)
-for j in range (0,sheeti.nrows):
+for j in range(0,sheeti.nrows) :
     l.append("Re: "+sheeti.cell_value(j, 2))
+    fl.append (sheeti.cell_value(j, 2))
 wbo = Workbook()
 Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True)
 wb = xlrd.open_workbook(loc)
@@ -21,7 +24,8 @@ sheet = wb.sheet_by_index(0)
 row = sheet.row(0)  # 1st row
 sheet.cell_value(0, 0)
 p=0
-for i in range (0,sheet.nrows):
+for i in range(0,sheet.nrows):
+
     Sheet1.write(p, 0, sheet.cell_value(i, 2))
     if "ME-" in sheet.cell_value(i, 2):
         ind=sheet.cell_value(i, 2).index("ME-")+3
@@ -47,16 +51,20 @@ for i in range (0,sheet.nrows):
         Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1])
 
     if sheet.cell_value(i, 2) in l:
+
         for o in range (0,9):
             Sheet1.write(p, o, "")
-        inde = l.index(sheet.cell_value(i, 2))
-        if "Monitor" in sheet.cell_value(i, 4) and "close"  not in sheet.cell_value(i, 4) :
-            Sheet1.write(inde+1, 2, "Monitor")
-        elif "close" in sheet.cell_value(i, 4) or "Close" in sheet.cell_value(i, 4):
+        inde = fl.index(sheet.cell_value(i, 2)[4:])
+        print (inde)
+        if "close" in sheet.cell_value(i, 4):
+            Sheet1.write(inde,2, "Close")
+            print (fl)
+        elif "Monitor" in sheet.cell_value(i, 4)  :
 
-            Sheet1.write(inde+1, 2, "Close")
+            Sheet1.write(inde, 2, "Monitor")
         else:
-            Sheet1.write(inde+1, 2, "Open")
+            Sheet1.write(inde,2, "Open")
+
         p=p-1
     p=p+1
 
@@ -109,7 +117,8 @@ work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
-for j in range (1,sheetf.nrows):
+for j in range (0,sheetf.nrows):
+   fl.append (sheetf.cell_value(j,0))
    h=[]
    for y in range (0,8):
       h.append(sheetf.cell_value(j, y))
@@ -157,7 +166,7 @@ def month(n):
             tree.insert("",q, values=hl)
     tree.pack()
 
-
+wbo.save('fin.xls')
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
