@@ -1,0 +1,44 @@
+Sub Mailbody_To_Excel()
+Dim ns As NameSpace
+Dim Inbox As MAPIFolder
+Dim myitem As Outlook.MailItem
+Dim FileName As String
+Dim i As Integer
+Dim objSearchFolder As Outlook.MAPIFolder
+Dim item As Object
+Dim mail As MailItem
+Dim vbody As String
+Dim xlApp As Object  ' Excel.Application
+Dim xlWkb As Object  ' Excel.Workbook
+
+Set ns = GetNamespace("MAPI")
+Set Inbox = ns.GetDefaultFolder(olFolderInbox)
+Set objSearchFolder = Inbox
+i = 0
+If Inbox.Items.Count = 0 Then
+  MsgBox "Inbox is Empty", vbInformation, "Nothing Found"
+End If
+For Each item In Inbox.Items
+  If InStr(item.Subject, "AR") Or InStr(item.Subject, "Failure Notification") > 0 Then
+    If xlApp Is Nothing Then
+      Set xlApp = CreateObject("Excel.Application")  ' New Excel.Application
+      xlApp.Visible = True
+      Set xlWkb = xlApp.Workbooks.Add
+      Set DestnCell = xlApp.Range("B4")
+    End If
+    vbody = item.Body
+    DestnCell.Value = vbody
+    Set DestnCell = DestnCell.Offset(1)
+  End If
+Next
+If Not xlApp Is Nothing Then
+  xlApp.ActiveWorkbook.SaveAs ("C:\Desktop\DailyReport_" & Format(Date, "MM-DD-YYYY") & ".xls")
+  xlWkb.Close
+  xlApp.Quit
+  Set xlWkb = Nothing
+  Set xlApp = Nothing
+End If
+Set objSearchFolder = Nothing
+Set Inbox = Nothing
+Set ns = Nothing
+End Sub
