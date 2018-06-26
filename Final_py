@@ -82,22 +82,21 @@ from tkinter import *
 import tkinter.ttk
 m= tkinter.Tk()
 from tkinter import messagebox
+m.state('zoomed')
 
-
-
-m.title ('Major Event Manager V:1.0')
+m.title ('Major Event Manager V-1.0')
 
 tree = tkinter.ttk.Treeview(m, show = 'headings')
 #tkinter.ttk.Style().configure('Treeview',rowheight=30)
 tree["columns"] = ("1", "2","3","4","5","6","7","8")
-tree.column("1", width=150)
-tree.column("2", width=20)
-tree.column("3", width=20)
-tree.column("4", width=150)
-tree.column("5", width=100)
-tree.column("6", width=100)
-tree.column("7", width=150)
-tree.column("8", width=100)
+tree.column("1", width=300)
+tree.column("2", width=10)
+tree.column("3", width=10)
+tree.column("4", width=300)
+tree.column("5", width=40)
+tree.column("6", width=40)
+tree.column("7", width=300)
+tree.column("8", width=90)
 
 tree.heading("1", text="Subject")
 tree.heading("2", text="Type")
@@ -137,10 +136,16 @@ def complete():
         for y in range(0, 8):
             h.append(sheetf.cell_value(j, y))
         if h[0]!="":
-            tree.insert("", j, values=h)
+            if (h[2]=="Closed"):
+                tree.insert("", j, values=h, tags="closed")
+            elif (h[2]=="Monitor"):
+                tree.insert("", j, values=h, tags="monitor")
+            else:
+                tree.insert("", j, values=h, tags="open")
 
-
-
+    tree.tag_configure('closed', background='green')
+    tree.tag_configure('monitor', background='yellow')
+    tree.tag_configure('open', background='red')
     tree.pack()
 
 complete()
@@ -179,11 +184,17 @@ def month(n):
 
                 for zm in range(0, 8):
                     hlm.append(sheetsorm.cell_value(qm, zm))
-                tree.insert("", qm, values=hlm)
+                if hlm[0] != "":
+                    if (hlm[2] == "Closed"):
+                        tree.insert("", qm, values=hlm, tags="closed")
+                    elif (hlm[2] == "Monitor"):
+                        tree.insert("", qm, values=hlm, tags="monitor")
+                    else:
+                        tree.insert("", qm, values=hlm, tags="open")
 
-
-
-
+    tree.tag_configure('closed', background='green')
+    tree.tag_configure('monitor', background='yellow')
+    tree.tag_configure('open', background='red')
     tree.pack()
 
 def status(n):
@@ -199,15 +210,12 @@ def status(n):
 
                 for z in range(0, 8):
                     hl.append(sheetsor.cell_value(q, z))
-                tree.insert("", q, values=hl)
-            elif n == "All" :
-                for z in range(0, 8):
-                    hl.append(sheetsor.cell_value(q, z))
-                tree.insert("", q, values=hl)
+                tree.insert("", q, values=hl,tags="indi")
 
-
+    tree.tag_configure('indi', background='light blue')
     tree.pack()
-
+def popup_showinfo():
+    messagebox.showinfo("About", "Hello! Please report bugs at f20160184@hyderabad.bits-pilani.ac.in")
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
@@ -235,7 +243,6 @@ filemenu.add_command(label='October', command=partial(month,'10'))
 filemenu.add_command(label='November', command=partial(month,'11'))
 filemenu.add_command(label='December', command=partial(month,'12'))
 menu.add_cascade(label='Status', menu=statusmenu)
-statusmenu.add_command(label='All', command=partial(status,'All'))
 statusmenu.add_command(label='Open', command=partial(status,'Open'))
 statusmenu.add_command(label='Monitor', command=partial(status,'Monitor'))
 statusmenu.add_command(label='Close', command=partial(status,'Closed'))
@@ -244,7 +251,7 @@ filemenu.add_separator()
 filemenu.add_command(label='Exit', command=m.quit)
 helpmenu = Menu(menu, tearoff=0)
 menu.add_cascade(label='Help', menu=helpmenu)
-helpmenu.add_command(label='About')
+helpmenu.add_command(label='About',command=popup_showinfo)
 
 m.config(menu=menu)
 m.mainloop()
