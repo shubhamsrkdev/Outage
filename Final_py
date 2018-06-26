@@ -35,9 +35,10 @@ for i in range(0,sheet.nrows):
         Sheet1.write(p, 1, "ME-"+sheet.cell_value(i, 2)[ind])
     elif "AR-4" in sheet.cell_value(i, 2):
         Sheet1.write(p,1,"AR-4")
-    if "Monitor" in sheet.cell_value(i, 4) and "close"  not in sheet.cell_value(i, 4) :
+
+    if "monitor mode" in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Monitor")
-    elif "close" in sheet.cell_value(i, 4) or "Close" in sheet.cell_value(i, 4):
+    elif "close" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
     else:
         Sheet1.write(p, 2, "Open")
@@ -87,15 +88,16 @@ from tkinter import messagebox
 m.title ('Major Event Manager V:1.0')
 
 tree = tkinter.ttk.Treeview(m, show = 'headings')
+#tkinter.ttk.Style().configure('Treeview',rowheight=30)
 tree["columns"] = ("1", "2","3","4","5","6","7","8")
 tree.column("1", width=150)
-tree.column("2", width=50)
-tree.column("3", width=50)
+tree.column("2", width=20)
+tree.column("3", width=20)
 tree.column("4", width=150)
-tree.column("5", width=150)
-tree.column("6", width=150)
+tree.column("5", width=100)
+tree.column("6", width=100)
 tree.column("7", width=150)
-tree.column("8", width=150)
+tree.column("8", width=100)
 
 tree.heading("1", text="Subject")
 tree.heading("2", text="Type")
@@ -110,14 +112,13 @@ display_text = tkinter.StringVar()
 display_text.set('')
 
 monthtext= tkinter.StringVar()
-monthtext.set("")
+monthtext.set("Please select month")
 w = Label(m, textvariable=display_text)
 w.pack()
 v = Label(m, textvariable=monthtext)
 v.pack()
-
 display_text.set(str(datetime.now().year))
-year=str(datetime.now().year)[3]
+year=str(datetime.now().year)
 tree.tag_configure('ttk', background='yellow')
 #button=tkinter.Button(m,activebackground="blue",activeforeground="white")
 #button.pack()
@@ -126,17 +127,6 @@ work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
-
-for j in range (0,sheetf.nrows):
-    fl.append(sheetf.cell_value(j,0))
-    h=[]
-    for y in range(0,8):
-        h.append(sheetf.cell_value(j,y))
-    if h[0] != "":
-        
-        tree.insert("",j,values=h)
-
-tree.pack(fill = 'both', expand = 'Yes')
 def complete():
     tree.delete(*tree.get_children())
     sheetf = work.sheet_by_index(0)
@@ -146,47 +136,90 @@ def complete():
         h = []
         for y in range(0, 8):
             h.append(sheetf.cell_value(j, y))
+        if h[0]!="":
+            tree.insert("", j, values=h)
 
-        tree.insert("", j, values=h)
+
 
     tree.pack()
+
+complete()
+
+tree.pack(fill = 'both', expand = 'Yes')
+
 
 def donothing(n):
   global display_text
   global year
   display_text.set(n)
+  monthtext.set("Please set month")
   year = n
 
 def month(n):
 
     global monthtext
-    monthtext.set(n)
+    months=["January","February","March","April","May","June","July","August","September","October","November","December"]
+    month_set=int(n)-1
+    monthtext.set(months[month_set])
     tree.delete(*tree.get_children())
 
-    sheetsor=work.sheet_by_index(0)
+    sheetsorm=work.sheet_by_index(0)
+    rowsor = sheetsorm.row(0)
+    for qm in range(0, sheetsorm.nrows):
+        hlm = []
+
+        if sheetsorm.cell_value(qm,0) != "":
+
+
+
+
+            if sheetsorm.cell_value(qm, 4)[7] == n and sheetsorm.cell_value(qm, 4)[1:5] == year:
+
+
+
+                for zm in range(0, 8):
+                    hlm.append(sheetsorm.cell_value(qm, zm))
+                tree.insert("", qm, values=hlm)
+
+
+
+
+    tree.pack()
+
+def status(n):
+    tree.delete(*tree.get_children())
+
+    sheetsor = work.sheet_by_index(0)
     rowsor = sheetsor.row(0)
     for q in range(0, sheetsor.nrows):
         hl = []
 
-        if sheetsor.cell_value(q, 4)[7] == n and sheetsor.cell_value(q, 4)[4]== year:
+        if sheetsor.cell_value(q, 0) != "":
+            if sheetsor.cell_value(q, 2) == n :
 
-            for z in range(0, 8):
-                hl.append(sheetsor.cell_value(q, z))
-            tree.insert("",q, values=hl)
+                for z in range(0, 8):
+                    hl.append(sheetsor.cell_value(q, z))
+                tree.insert("", q, values=hl)
+            elif n == "All" :
+                for z in range(0, 8):
+                    hl.append(sheetsor.cell_value(q, z))
+                tree.insert("", q, values=hl)
+
+
     tree.pack()
-
 
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
 filemenu = Menu(menu, tearoff=0)
+statusmenu=Menu(menu, tearoff=0)
 menu.add_cascade(label='Year', menu=yearmenu)
-yearmenu.add_command(label='2018', command=partial(donothing,'8'))
-yearmenu.add_command(label='2019', command=partial(donothing,'9'))
-yearmenu.add_command(label='2020', command=partial(donothing,'0'))
-yearmenu.add_command(label='2021', command=partial(donothing,'1'))
-yearmenu.add_command(label='2022', command=partial(donothing,'2'))
-yearmenu.add_command(label='2023', command=partial(donothing,'3'))
+yearmenu.add_command(label='2018', command=partial(donothing,'2018'))
+yearmenu.add_command(label='2019', command=partial(donothing,'2019'))
+yearmenu.add_command(label='2020', command=partial(donothing,'2020'))
+yearmenu.add_command(label='2021', command=partial(donothing,'2021'))
+yearmenu.add_command(label='2022', command=partial(donothing,'2022'))
+yearmenu.add_command(label='2023', command=partial(donothing,'2023'))
 menu.add_cascade(label='Month', menu=filemenu)
 filemenu.add_command(label='Display All', command=complete)
 filemenu.add_command(label='January', command=partial(month,'1'))
@@ -201,6 +234,11 @@ filemenu.add_command(label='September', command=partial(month,'9'))
 filemenu.add_command(label='October', command=partial(month,'10'))
 filemenu.add_command(label='November', command=partial(month,'11'))
 filemenu.add_command(label='December', command=partial(month,'12'))
+menu.add_cascade(label='Status', menu=statusmenu)
+statusmenu.add_command(label='All', command=partial(status,'All'))
+statusmenu.add_command(label='Open', command=partial(status,'Open'))
+statusmenu.add_command(label='Monitor', command=partial(status,'Monitor'))
+statusmenu.add_command(label='Close', command=partial(status,'Closed'))
 
 filemenu.add_separator()
 filemenu.add_command(label='Exit', command=m.quit)
