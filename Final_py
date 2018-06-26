@@ -5,7 +5,10 @@ import time
 from datetime import datetime
 from functools import partial
 from xlwt import Workbook
+from xlrd import open_workbook
+from xlutils.copy import copy
 import re
+#Excel is read here
 loc=("AR.xlsx")
 l=[]
 fl=[]
@@ -16,7 +19,7 @@ rowi = sheeti.row(0)  # 1st row
 sheeti.cell_value(0, 0)
 for j in range(0,sheeti.nrows) :
     l.append("Re: "+sheeti.cell_value(j, 2))
-    fl.append (sheeti.cell_value(j, 2))
+
 wbo = Workbook()
 Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True)
 wb = xlrd.open_workbook(loc)
@@ -50,26 +53,29 @@ for i in range(0,sheet.nrows):
     if 'Ticket reference' in str_list:
         Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1])
 
-    if sheet.cell_value(i, 2) in l:
 
-        for o in range (0,9):
-            Sheet1.write(p, o, "")
-        inde = fl.index(sheet.cell_value(i, 2)[4:])
-        print (inde)
-        if "close" in sheet.cell_value(i, 4):
-            Sheet1.write(inde,2, "Close")
-            print (fl)
-        elif "Monitor" in sheet.cell_value(i, 4)  :
-
-            Sheet1.write(inde, 2, "Monitor")
-        else:
-            Sheet1.write(inde,2, "Open")
-
-        p=p-1
     p=p+1
 
 wbo.save('fin.xls')
 
+#Reply mails are checked here
+wblocat = xlrd.open_workbook('fin.xls')
+
+sheetlocat = wblocat.sheet_by_index(0)
+rowlocat = sheetlocat.row(0)  # 1st row
+sheetlocat.cell_value(0, 0)
+rb = open_workbook('fin.xls',formatting_info=True)
+r_sheet = rb.sheet_by_index(0) # read only copy to introspect the file
+wblo = copy(rb) # a writable copy (I can't read values out of this, only write to it)
+w_sheet = wblo.get_sheet(0) # the sheet to write to within the writable copy
+
+for k in range (0,r_sheet.nrows):
+    if (r_sheet.cell_value(k,0) in l):
+        w_sheet.write(l.index(sheetlocat.cell_value(k,0)),2,sheetlocat.cell_value(k,2))
+        for o in range(0,9):
+            w_sheet.write(k,o,"")
+
+wblo.save('fin2.xls')
 #GUI is added below
 from tkinter import *
 import tkinter.ttk
@@ -79,7 +85,8 @@ from tkinter import messagebox
 
 
 m.title ('Major Event Manager V:1.0')
-tree = tkinter.ttk.Treeview(m)
+
+tree = tkinter.ttk.Treeview(m, show = 'headings')
 tree["columns"] = ("1", "2","3","4","5","6","7","8")
 tree.column("1", width=150)
 tree.column("2", width=50)
@@ -100,19 +107,21 @@ tree.heading("7", text="Customers Affected")
 tree.heading("8", text="Ticket number")
 #Sender	Type	Status	Update	Start Date	End Date	Customers affected	Ticket number
 display_text = tkinter.StringVar()
+display_text.set('')
 
-
-month="Complete month"
-w = Label(m, text=display_text)
+monthtext= tkinter.StringVar()
+monthtext.set("")
+w = Label(m, textvariable=display_text)
 w.pack()
-v = Label(m, text=month)
+v = Label(m, textvariable=monthtext)
 v.pack()
+
 display_text.set(str(datetime.now().year))
 year=str(datetime.now().year)[3]
 tree.tag_configure('ttk', background='yellow')
 #button=tkinter.Button(m,activebackground="blue",activeforeground="white")
 #button.pack()
-location=("./fin.xls")
+location=("./fin2.xls")
 work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
@@ -125,13 +134,13 @@ for j in range (0,sheetf.nrows):
 
    tree.insert("", j, values=h)
 
-tree.pack()
+tree.pack(fill = 'both', expand = 'Yes')
 def complete():
     tree.delete(*tree.get_children())
     sheetf = work.sheet_by_index(0)
     rowf = sheetf.row(0)  # 1st row
     sheetf.cell_value(0, 0)
-    for j in range(1, sheetf.nrows):
+    for j in range(0, sheetf.nrows):
         h = []
         for y in range(0, 8):
             h.append(sheetf.cell_value(j, y))
@@ -140,23 +149,21 @@ def complete():
 
     tree.pack()
 
-
-
-
-
-
-
-
-
 def donothing(n):
+  global display_text
   global year
-  year=n
+  display_text.set(n)
+  year = n
+
 def month(n):
+
+    global monthtext
+    monthtext.set(n)
     tree.delete(*tree.get_children())
 
     sheetsor=work.sheet_by_index(0)
     rowsor = sheetsor.row(0)
-    for q in range(1, sheetsor.nrows):
+    for q in range(0, sheetsor.nrows):
         hl = []
 
         if sheetsor.cell_value(q, 4)[7] == n and sheetsor.cell_value(q, 4)[4]== year:
@@ -166,7 +173,7 @@ def month(n):
             tree.insert("",q, values=hl)
     tree.pack()
 
-wbo.save('fin.xls')
+
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
