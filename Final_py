@@ -126,13 +126,15 @@ work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
-for j in range (0,sheetf.nrows):
-   fl.append (sheetf.cell_value(j,0))
-   h=[]
-   for y in range (0,8):
-      h.append(sheetf.cell_value(j, y))
 
-   tree.insert("", j, values=h)
+for j in range (0,sheetf.nrows):
+    fl.append(sheetf.cell_value(j,0))
+    h=[]
+    for y in range(0,8):
+        h.append(sheetf.cell_value(j,y))
+    if h[0] != "":
+        
+        tree.insert("",j,values=h)
 
 tree.pack(fill = 'both', expand = 'Yes')
 def complete():
