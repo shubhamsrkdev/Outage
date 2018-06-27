@@ -13,9 +13,6 @@ loc=("AR.xlsx")
 l=[]
 fl=[]
 wbi = xlrd.open_workbook(loc)
-closed_count=0
-m_count=0
-open_count=0
 sheeti = wbi.sheet_by_index(0)
 rowi = sheeti.row(0)  # 1st row
 sheeti.cell_value(0, 0)
@@ -129,6 +126,12 @@ sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
 def complete():
+    global closed_count
+    closed_count = 0
+    global open_count
+    open_count = 0
+    global m_count
+    m_count = 0
     tree.delete(*tree.get_children())
     sheetf = work.sheet_by_index(0)
     rowf = sheetf.row(0)  # 1st row
@@ -143,10 +146,10 @@ def complete():
                 closed_count =closed_count+ 1
             elif (h[2]=="Monitor"):
                 tree.insert("", j, values=h, tags="monitor")
-                #m_count=m_count+1
+                m_count=m_count+1
             else:
                 tree.insert("", j, values=h, tags="open")
-                #open_count=open_count+1
+                open_count=open_count+1
 
     tree.tag_configure('closed', background='green')
     tree.tag_configure('monitor', background='yellow')
@@ -221,11 +224,17 @@ def status(n):
     tree.pack()
 def popup_showinfo():
     messagebox.showinfo("About", "Hello! Please report bugs at f20160184@hyderabad.bits-pilani.ac.in")
-q= Label(m, textvariable="Open: "+str(open_count))
+display_open = tkinter.StringVar()
+display_open.set("Open: "+str(open_count))
+display_monitor = tkinter.StringVar()
+display_monitor.set("Monitor: "+str(m_count))
+display_closed = tkinter.StringVar()
+display_closed.set("Closed: "+str(closed_count))
+q= Label(m, textvariable=display_open)
 q.pack()
-mon_d= Label(m, textvariable="Monitor: "+str(m_count))
+mon_d= Label(m, textvariable=display_monitor)
 mon_d.pack()
-r= Label(m, textvariable="Closed: "+str(closed_count))
+r= Label(m, textvariable=display_closed)
 r.pack()
 menu = Menu(m)
 m.config(menu=menu)
