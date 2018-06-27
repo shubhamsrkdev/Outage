@@ -23,7 +23,7 @@ Call Application_Start
 Item.Delete
 
 ' Create another appt to repeat the process
-CreateAppointment
+'CreateAppointment
 
 End Sub
 
