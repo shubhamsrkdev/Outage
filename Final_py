@@ -16,8 +16,8 @@ wbi = xlrd.open_workbook(loc)
 sheeti = wbi.sheet_by_index(0)
 rowi = sheeti.row(0)  # 1st row
 sheeti.cell_value(0, 0)
-for j in range(0,sheeti.nrows) :
-    l.append("Re: "+sheeti.cell_value(j, 2))
+for j in reversed(range(0,sheeti.nrows)) :
+    l.append("re: "+sheeti.cell_value(j, 2).lower())
 
 wbo = Workbook()
 Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True)
@@ -26,7 +26,7 @@ sheet = wb.sheet_by_index(0)
 row = sheet.row(0)  # 1st row
 sheet.cell_value(0, 0)
 p=0
-for i in range(0,sheet.nrows):
+for i in reversed(range(0,sheet.nrows)):
 
     Sheet1.write(p, 0, sheet.cell_value(i, 2))
     if "ME-" in sheet.cell_value(i, 2):
@@ -35,7 +35,9 @@ for i in range(0,sheet.nrows):
     elif "AR-4" in sheet.cell_value(i, 2):
         Sheet1.write(p,1,"AR-4")
 
-    if "monitor mode" in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
+    if "monitor mode"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
+        Sheet1.write(p, 2, "Monitor")
+    elif "monitor state"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Monitor")
     elif "close" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
@@ -70,10 +72,16 @@ wblo = copy(rb) # a writable copy (I can't read values out of this, only write t
 w_sheet = wblo.get_sheet(0) # the sheet to write to within the writable copy
 
 for k in range (0,r_sheet.nrows):
-    if (r_sheet.cell_value(k,0) in l):
-        w_sheet.write(l.index(sheetlocat.cell_value(k,0)),2,sheetlocat.cell_value(k,2))
+    if (r_sheet.cell_value(k,0).lower() in l):
+        
+        w_sheet.write(l.index(sheetlocat.cell_value(k,0).lower()),2,sheetlocat.cell_value(k,2))
         for o in range(0,9):
             w_sheet.write(k,o,"")
+
+
+
+
+
 
 wblo.save('fin2.xls')
 #GUI is added below
@@ -182,11 +190,16 @@ def month(n):
         hlm = []
 
         if sheetsorm.cell_value(qm,0) != "":
+            workm=""
+            if (sheetsorm.cell_value(qm, 4)[0]==" "):
+                workm=sheetsorm.cell_value(qm, 4)[1:]
+            else:
+                workm = sheetsorm.cell_value(qm, 4)
 
 
 
 
-            if sheetsorm.cell_value(qm, 4)[7] == n and sheetsorm.cell_value(qm, 4)[1:5] == year:
+            if workm[5:7] == n and workm[0:4] == year:
 
 
 
@@ -250,15 +263,15 @@ yearmenu.add_command(label='2022', command=partial(donothing,'2022'))
 yearmenu.add_command(label='2023', command=partial(donothing,'2023'))
 menu.add_cascade(label='Month', menu=filemenu)
 filemenu.add_command(label='Display All', command=complete)
-filemenu.add_command(label='January', command=partial(month,'1'))
-filemenu.add_command(label='February', command=partial(month,'2'))
-filemenu.add_command(label='March', command=partial(month,'3'))
-filemenu.add_command(label='April', command=partial(month,'4'))
-filemenu.add_command(label='May', command=partial(month,'5'))
-filemenu.add_command(label='June', command=partial(month,'6'))
-filemenu.add_command(label='July', command=partial(month,'7'))
-filemenu.add_command(label='August', command=partial(month,'8'))
-filemenu.add_command(label='September', command=partial(month,'9'))
+filemenu.add_command(label='January', command=partial(month,'01'))
+filemenu.add_command(label='February', command=partial(month,'02'))
+filemenu.add_command(label='March', command=partial(month,'03'))
+filemenu.add_command(label='April', command=partial(month,'04'))
+filemenu.add_command(label='May', command=partial(month,'05'))
+filemenu.add_command(label='June', command=partial(month,'06'))
+filemenu.add_command(label='July', command=partial(month,'07'))
+filemenu.add_command(label='August', command=partial(month,'08'))
+filemenu.add_command(label='September', command=partial(month,'09'))
 filemenu.add_command(label='October', command=partial(month,'10'))
 filemenu.add_command(label='November', command=partial(month,'11'))
 filemenu.add_command(label='December', command=partial(month,'12'))
