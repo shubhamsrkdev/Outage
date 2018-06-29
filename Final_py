@@ -41,6 +41,8 @@ for i in reversed(range(0,sheet.nrows)):
         Sheet1.write(p, 2, "Monitor")
     elif "close" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
+    elif "resolve" in sheet.cell_value(i, 4).lower():
+        Sheet1.write(p, 2, "Closed")
     else:
         Sheet1.write(p, 2, "Open")
     str_list = list(filter(None, sheet.cell_value(i, 4).split('\r\n')))
@@ -72,8 +74,9 @@ wblo = copy(rb) # a writable copy (I can't read values out of this, only write t
 w_sheet = wblo.get_sheet(0) # the sheet to write to within the writable copy
 
 for k in range (0,r_sheet.nrows):
+
     if (r_sheet.cell_value(k,0).lower() in l):
-        
+
         w_sheet.write(l.index(sheetlocat.cell_value(k,0).lower()),2,sheetlocat.cell_value(k,2))
         for o in range(0,9):
             w_sheet.write(k,o,"")
@@ -82,13 +85,18 @@ for k in range (0,r_sheet.nrows):
 
 
 
-
 wblo.save('fin2.xls')
 #GUI is added below
+
 from tkinter import *
 import tkinter.ttk
 m= tkinter.Tk()
+
 from tkinter import messagebox
+canvas = Canvas(m, width = 2000, height = 150)
+canvas.pack()
+img = PhotoImage(file="image.ppm")
+canvas.create_image(500,2, anchor=NW, image=img)
 m.state('zoomed')
 
 m.title ('Major Event Manager V-1.0')
