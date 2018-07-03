@@ -121,7 +121,7 @@ tree.column("5", width=40)
 tree.column("6", width=40)
 tree.column("7", width=300)
 tree.column("8", width=90)
-tree.column("8", width=200)
+tree.column("9", width=200)
 
 tree.heading("1", text="Subject")
 tree.heading("2", text="Type")
