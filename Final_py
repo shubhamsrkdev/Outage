@@ -100,12 +100,25 @@ wblo.save('fin2.xls')
 from tkinter import *
 import tkinter.ttk
 m= tkinter.Tk()
-
+m.withdraw()
 from tkinter import messagebox
+
+
 canvas = Canvas(m, width = 2000, height = 150)
-canvas.pack()
+def copy_ticket(event):
+    print ("Hola")
+    mouse_x = m.winfo_pointerx()
+    mouse_y = m.winfo_pointery()
+    m.clipboard_clear()
+    m.clipboard_append(mouse_x)
+    print (mouse_x)
+    m.update()
+m.bind("<Button-1>",copy_ticket)
+
+
 img = PhotoImage(file="image.ppm")
 canvas.create_image(500,2, anchor=NW, image=img)
+canvas.pack()
 m.state('zoomed')
 
 m.title ('Major Event Manager V-1.0')
@@ -256,6 +269,15 @@ def status(n):
     tree.pack()
 def popup_showinfo():
     messagebox.showinfo("About", "Hello! Please report bugs at f20160184@hyderabad.bits-pilani.ac.in")
+
+
+    	
+
+
+	
+	
+	
+
 display_open = tkinter.StringVar()
 display_open.set("Open: "+str(open_count))
 display_monitor = tkinter.StringVar()
