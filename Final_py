@@ -44,11 +44,11 @@ for i in reversed(range(0,sheet.nrows)):
     elif "close" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
         temp_ind=sheet.cell_value(i, 4).index("RFO")+3
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:])
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:].lstrip('  :-'))
     elif "resolve" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
         temp_ind=sheet.cell_value(i, 4).index("RFO")+3
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:])
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:].lstrip('  :-'))
     else:
         Sheet1.write(p, 2, "Open")
         
@@ -63,7 +63,8 @@ for i in reversed(range(0,sheet.nrows)):
     if 'Customers impacted' in str_list:
         Sheet1.write(p, 6, str_list[str_list.index('Customers impacted') + 1])
     if 'Ticket reference' in str_list:
-        Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1])
+        N_index=str_list[str_list.index('Ticket reference') + 1].index("N")
+        Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1][N_index:])
 	
 
     p=p+1
@@ -90,10 +91,6 @@ for k in range (0,r_sheet.nrows):
         for o in range(0,9):
             w_sheet.write(k,o,"")
 
-
-
-
-
 wblo.save('fin2.xls')
 #GUI is added below
 
@@ -104,36 +101,26 @@ m.withdraw()
 from tkinter import messagebox
 
 
-canvas = Canvas(m, width = 2000, height = 150)
-def copy_ticket(event):
-    print ("Hola")
-    mouse_x = m.winfo_pointerx()
-    mouse_y = m.winfo_pointery()
-    m.clipboard_clear()
-    m.clipboard_append(mouse_x)
-    print (mouse_x)
-    m.update()
-m.bind("<Button-1>",copy_ticket)
-
-
+canvas = Canvas(m, width = m.winfo_screenwidth(), height = 150)
 img = PhotoImage(file="image.ppm")
-canvas.create_image(500,2, anchor=NW, image=img)
+canvas.create_image((m.winfo_screenwidth()-300)/2,2, anchor=NW, image=img)
 canvas.pack()
+
 m.state('zoomed')
 
 m.title ('Major Event Manager V-1.0')
 
 tree = tkinter.ttk.Treeview(m, show = 'headings')
-#tkinter.ttk.Style().configure('Treeview',rowheight=30)
+tkinter.ttk.Style().configure('Treeview',rowheight=30)
 tree["columns"] = ("1", "2","3","4","5","6","7","8","9")
 tree.column("1", width=300)
-tree.column("2", width=10)
-tree.column("3", width=10)
+tree.column("2", minwidth=40,width=40,stretch=False)
+tree.column("3", minwidth=50,width=50,stretch=False)
 tree.column("4", width=300)
-tree.column("5", width=40)
-tree.column("6", width=40)
+tree.column("5", minwidth=70,width=70,stretch=False)
+tree.column("6", minwidth=70,width=70,stretch=False)
 tree.column("7", width=300)
-tree.column("8", width=90)
+tree.column("8",  minwidth=90,width=90,stretch=False)
 tree.column("9", width=200)
 
 tree.heading("1", text="Subject")
@@ -165,6 +152,7 @@ work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
+
 def complete():
     global closed_count
     closed_count = 0
@@ -195,9 +183,7 @@ def complete():
     tree.tag_configure('monitor', background='yellow')
     tree.tag_configure('open', background='red')
     tree.pack()
-
 complete()
-
 tree.pack(fill = 'both', expand = 'Yes')
 
 
@@ -222,19 +208,8 @@ def month(n):
         hlm = []
 
         if sheetsorm.cell_value(qm,0) != "":
-            workm=""
-            if (sheetsorm.cell_value(qm, 4)[0]==" "):
-                workm=sheetsorm.cell_value(qm, 4)[1:]
-            else:
-                workm = sheetsorm.cell_value(qm, 4)
-
-
-
-
+            workm=sheetsorm.cell_value(qm, 4).lstrip()
             if workm[5:7] == n and workm[0:4] == year:
-
-
-
                 for zm in range(0, 9):
                     hlm.append(sheetsorm.cell_value(qm, zm))
                 if hlm[0] != "":
@@ -252,12 +227,10 @@ def month(n):
 
 def status(n):
     tree.delete(*tree.get_children())
-
     sheetsor = work.sheet_by_index(0)
     rowsor = sheetsor.row(0)
     for q in range(0, sheetsor.nrows):
         hl = []
-
         if sheetsor.cell_value(q, 0) != "":
             if sheetsor.cell_value(q, 2) == n :
 
@@ -268,34 +241,36 @@ def status(n):
     tree.tag_configure('indi', background='light blue')
     tree.pack()
 def popup_showinfo():
-    messagebox.showinfo("About", "Hello! Please report bugs at f20160184@hyderabad.bits-pilani.ac.in")
+    messagebox.showinfo("About", "Hello! Please report bugs at: \n \n f20160184@hyderabad.bits-pilani.ac.in \n \n +91 9603028007  \n \n Developed by- Shubham Sharma")
 
+def copy_ticket(event):
+    curItem = tree.focus()
+    m.clipboard_clear()
+    m.clipboard_append(tree.item(curItem)["values"][7])
+    m.update()
 
-    	
-
-
-	
-	
-	
-
+tree.bind("<<TreeviewSelect>>",copy_ticket)
 display_open = tkinter.StringVar()
 display_open.set("Open: "+str(open_count))
 display_monitor = tkinter.StringVar()
 display_monitor.set("Monitor: "+str(m_count))
 display_closed = tkinter.StringVar()
 display_closed.set("Closed: "+str(closed_count))
+
 q= Label(m, textvariable=display_open)
 q.pack()
 mon_d= Label(m, textvariable=display_monitor)
 mon_d.pack()
 r= Label(m, textvariable=display_closed)
 r.pack()
+
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
 filemenu = Menu(menu, tearoff=0)
 statusmenu=Menu(menu, tearoff=0)
 menu.add_cascade(label='Year', menu=yearmenu)
+
 yearmenu.add_command(label='2018', command=partial(donothing,'2018'))
 yearmenu.add_command(label='2019', command=partial(donothing,'2019'))
 yearmenu.add_command(label='2020', command=partial(donothing,'2020'))
@@ -303,6 +278,7 @@ yearmenu.add_command(label='2021', command=partial(donothing,'2021'))
 yearmenu.add_command(label='2022', command=partial(donothing,'2022'))
 yearmenu.add_command(label='2023', command=partial(donothing,'2023'))
 menu.add_cascade(label='Month', menu=filemenu)
+
 filemenu.add_command(label='Display All', command=complete)
 filemenu.add_command(label='January', command=partial(month,'01'))
 filemenu.add_command(label='February', command=partial(month,'02'))
@@ -317,17 +293,16 @@ filemenu.add_command(label='October', command=partial(month,'10'))
 filemenu.add_command(label='November', command=partial(month,'11'))
 filemenu.add_command(label='December', command=partial(month,'12'))
 menu.add_cascade(label='Status', menu=statusmenu)
+
 statusmenu.add_command(label='Open', command=partial(status,'Open'))
 statusmenu.add_command(label='Monitor', command=partial(status,'Monitor'))
 statusmenu.add_command(label='Close', command=partial(status,'Closed'))
-
 filemenu.add_separator()
 filemenu.add_command(label='Exit', command=m.quit)
 helpmenu = Menu(menu, tearoff=0)
 menu.add_cascade(label='Help', menu=helpmenu)
+
 helpmenu.add_command(label='About',command=popup_showinfo)
 
 m.config(menu=menu)
-
-
 m.mainloop()
