@@ -1,4 +1,4 @@
-Sub Application_Startup()
+Sub Application_Start()
 
 On Error GoTo ErrHandler
 
@@ -12,15 +12,19 @@ Dim nms As Outlook.NameSpace
 Dim fld As Outlook.MAPIFolder
 Dim itm As Object
 Dim EndDate As Date
-
+Dim acc As Account
 
 'Folder path and file name of an existing Excel workbook
-
-workbookFile = "C:\Users\Public\AR.xlsx"
-EndDate = #6/21/2018#
-'Select export folder
 Set nms = Application.GetNamespace("MAPI")
-Set fld = Application.ActiveExplorer.CurrentFolder
+workbookFile = "C:\Users\Public\dist\Major_event_manager\AR.xlsx"
+For Each acc In nms.Accounts
+If acc ="inoc@tatacommunications.com" then
+Set fld = acc.DeliveryStore.GetDefaultFolder(olFolderInbox)).Folders("ME and AR")
+End If
+Next
+'Select export folder
+'
+'Set fld = nms.PickFolder
 
 
 'Handle potential errors with Select Folder dialog box.
@@ -51,7 +55,7 @@ Set rng = wks.Range("A1")
 For Each itm In fld.Items
 If itm.Class = Outlook.OlObjectClass.olMail Then
 Set msg = itm
-If msg.SentOn >= EndDate Then
+
 If InStr(msg.Subject, "AR") Or InStr(msg.Subject, "Failure Notification") > 0 Then
 rng.Offset(0, 0).Value = msg.To
 rng.Offset(0, 1).Value = msg.SenderEmailAddress
@@ -78,6 +82,10 @@ MsgBox "Error number: " & Err.Number & vbNewLine & _
 End If
 
 End Sub
+
+
+
+
 
 
 
