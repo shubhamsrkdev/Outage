@@ -30,7 +30,7 @@ for i in reversed(range(0,sheet.nrows)):
 
     Sheet1.write(p, 0, sheet.cell_value(i, 2))
     if "ME-" in sheet.cell_value(i, 2):
-        ind=sheet.cell_value(i, 2).index("ME-")+3
+        ind=sheet.cell_value(i, 2).find("ME-")+3
         Sheet1.write(p, 1, "ME-"+sheet.cell_value(i, 2)[ind])
     elif "AR-4" in sheet.cell_value(i, 2):
         Sheet1.write(p,1,"AR-4")
@@ -43,12 +43,16 @@ for i in reversed(range(0,sheet.nrows)):
         Sheet1.write(p, 8, "N/A")
     elif "close" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
-        temp_ind=sheet.cell_value(i, 4).index("RFO")+3
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:].lstrip('  :-'))
+        temp_ind=sheet.cell_value(i, 4).find("RFO")+3
+        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") 
+        #pattern = re.compile('RFO\s*([\s\w.]*)\n[A-Z\s]*:')
+        #print (sheet.cell_value(i,4)[temp_ind:temp_ind+tempor_ind])
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-'))
     elif "resolve" in sheet.cell_value(i, 4).lower():
         Sheet1.write(p, 2, "Closed")
-        temp_ind=sheet.cell_value(i, 4).index("RFO")+3
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:].lstrip('  :-'))
+        temp_ind=sheet.cell_value(i, 4).find("RFO")+3
+        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") 
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-'))
     else:
         Sheet1.write(p, 2, "Open")
         
@@ -63,7 +67,7 @@ for i in reversed(range(0,sheet.nrows)):
     if 'Customers impacted' in str_list:
         Sheet1.write(p, 6, str_list[str_list.index('Customers impacted') + 1])
     if 'Ticket reference' in str_list:
-        N_index=str_list[str_list.index('Ticket reference') + 1].index("N")
+        N_index=str_list[str_list.index('Ticket reference') + 1].find("N")
         Sheet1.write(p, 7, str_list[str_list.index('Ticket reference') + 1][N_index:])
 	
 
@@ -152,7 +156,9 @@ work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
 sheetf.cell_value(0, 0)
-
+display_open = tkinter.StringVar()
+display_monitor = tkinter.StringVar()
+display_closed = tkinter.StringVar()
 def complete():
     global closed_count
     closed_count = 0
@@ -183,6 +189,12 @@ def complete():
     tree.tag_configure('monitor', background='yellow')
     tree.tag_configure('open', background='red')
     tree.pack()
+    #display_open = tkinter.StringVar()
+    display_open.set("Open: "+str(open_count))
+    #display_monitor = tkinter.StringVar()
+    display_monitor.set("Monitor: "+str(m_count))
+    #display_closed = tkinter.StringVar()
+    display_closed.set("Closed: "+str(closed_count))
 complete()
 tree.pack(fill = 'both', expand = 'Yes')
 
@@ -201,7 +213,9 @@ def month(n):
     month_set=int(n)-1
     monthtext.set(months[month_set])
     tree.delete(*tree.get_children())
-
+    closed_mcount=0
+    open_mcount=0
+    monitor_mcount=0
     sheetsorm=work.sheet_by_index(0)
     rowsor = sheetsorm.row(0)
     for qm in range(0, sheetsorm.nrows):
@@ -215,15 +229,21 @@ def month(n):
                 if hlm[0] != "":
                     if (hlm[2] == "Closed"):
                         tree.insert("", qm, values=hlm, tags="closed")
+                        closed_mcount=closed_mcount+1
                     elif (hlm[2] == "Monitor"):
                         tree.insert("", qm, values=hlm, tags="monitor")
+                        monitor_mcount=monitor_mcount+1
                     else:
                         tree.insert("", qm, values=hlm, tags="open")
+                        open_mcount=open_mcount+1
 
     tree.tag_configure('closed', background='green')
     tree.tag_configure('monitor', background='yellow')
     tree.tag_configure('open', background='red')
     tree.pack()
+    display_open.set("Open: "+str(open_mcount))
+    display_monitor.set("Monitor: "+str(monitor_mcount))
+    display_closed.set("Closed: "+str(closed_mcount))
 
 def status(n):
     tree.delete(*tree.get_children())
