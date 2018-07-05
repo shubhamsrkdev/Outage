@@ -8,56 +8,55 @@ from xlwt import Workbook
 from xlrd import open_workbook
 from xlutils.copy import copy
 import re
+
 #Excel is read here
+
 loc=("AR.xlsx")
-l=[]
+l=[] #A list which which will be used later for checking reply messages
 fl=[]
-wbi = xlrd.open_workbook(loc)
+wbi = xlrd.open_workbook(loc) #opening AR
 sheeti = wbi.sheet_by_index(0)
 rowi = sheeti.row(0)  # 1st row
 sheeti.cell_value(0, 0)
-for j in reversed(range(0,sheeti.nrows)) :
+for j in reversed(range(0,sheeti.nrows)) : #populating l, in reversed order because recent mails are on top
     l.append("re: "+sheeti.cell_value(j, 2).lower())
 
-wbo = Workbook()
-Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True)
-wb = xlrd.open_workbook(loc)
+wbo = Workbook() #for making fl1.xlsx
+Sheet1 = wbo.add_sheet('Sheet1', cell_overwrite_ok=True) #adding sheet to it
+wb = xlrd.open_workbook(loc) #opening AR
 sheet = wb.sheet_by_index(0)
 row = sheet.row(0)  # 1st row
 sheet.cell_value(0, 0)
 p=0
-for i in reversed(range(0,sheet.nrows)):
-
-    Sheet1.write(p, 0, sheet.cell_value(i, 2))
+for i in reversed(range(0,sheet.nrows)): #making filtered excel 
+    #Identifying type of ME
+    Sheet1.write(p, 0, sheet.cell_value(i, 2)) #Identifying type of ME
     if "ME-" in sheet.cell_value(i, 2):
         ind=sheet.cell_value(i, 2).find("ME-")+3
         Sheet1.write(p, 1, "ME-"+sheet.cell_value(i, 2)[ind])
     elif "AR-4" in sheet.cell_value(i, 2):
         Sheet1.write(p,1,"AR-4")
-    if "monitor mode"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
-
+    #Identifying status of ME
+    if "monitor mode"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():#checking monitor mode
         Sheet1.write(p, 2, "Monitor")
-        Sheet1.write(p, 8, "N/A")
-    elif "monitor state"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():
+        Sheet1.write(p, 8, "N/A") #RFO text
+    elif "monitor state"  in sheet.cell_value(i, 4).lower() and "close" not in sheet.cell_value(i, 4).lower():#checking monitor mode
         Sheet1.write(p, 2, "Monitor")
-        Sheet1.write(p, 8, "N/A")
-    elif "close" in sheet.cell_value(i, 4).lower():
+        Sheet1.write(p, 8, "N/A") #RFO text
+    elif "close" in sheet.cell_value(i, 4).lower(): #checking closed state
         Sheet1.write(p, 2, "Closed")
-        temp_ind=sheet.cell_value(i, 4).find("RFO")+3
-        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") 
-        #pattern = re.compile('RFO\s*([\s\w.]*)\n[A-Z\s]*:')
-        #print (sheet.cell_value(i,4)[temp_ind:temp_ind+tempor_ind])
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-'))
-    elif "resolve" in sheet.cell_value(i, 4).lower():
+        temp_ind=sheet.cell_value(i, 4).find("RFO")+3 #For text after the word RFO
+        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") #For identifying empty line
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-')) #Extracting text after RFO and before white line
+    elif "resolve" in sheet.cell_value(i, 4).lower(): #checking closed state
         Sheet1.write(p, 2, "Closed")
-        temp_ind=sheet.cell_value(i, 4).find("RFO")+3
-        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") 
-        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-'))
+        temp_ind=sheet.cell_value(i, 4).find("RFO")+3 #For text after the word RFO
+        tempor_ind=sheet.cell_value(i,4)[temp_ind:].index ("\r\n") #For identifying empty line
+        Sheet1.write(p, 8, sheet.cell_value(i, 4)[temp_ind:temp_ind+tempor_ind].lstrip('  :-'))#Extracting text after RFO and before white line
     else:
-        Sheet1.write(p, 2, "Open")
-        
-        Sheet1.write(p, 8, "N/A")
-    str_list = list(filter(None, sheet.cell_value(i, 4).split('\r\n')))
+        Sheet1.write(p, 2, "Open") #checking open state
+        Sheet1.write(p, 8, "N/A")#RFO text
+    str_list = list(filter(None, sheet.cell_value(i, 4).split('\r\n'))) #making a list of the message body
     if 'Event description & impact' in str_list:
         Sheet1.write(p, 3, str_list[str_list.index('Event description & impact')+1])
     if 'Start date/time (GMT)' in str_list:
@@ -73,12 +72,12 @@ for i in reversed(range(0,sheet.nrows)):
 
     p=p+1
 
-wbo.save('fin.xls')
+wbo.save('fin.xls') #saving fin.xlsx
 
 #Reply mails are checked here
 wblocat = xlrd.open_workbook('fin.xls')
 
-sheetlocat = wblocat.sheet_by_index(0)
+sheetlocat = wblocat.sheet_by_index(0) #opening sheet
 rowlocat = sheetlocat.row(0)  # 1st row
 sheetlocat.cell_value(0, 0)
 rb = open_workbook('fin.xls',formatting_info=True)
@@ -87,37 +86,35 @@ wblo = copy(rb) # a writable copy (I can't read values out of this, only write t
 w_sheet = wblo.get_sheet(0) # the sheet to write to within the writable copy
 
 for k in range (0,r_sheet.nrows):
-
-    if (r_sheet.cell_value(k,0).lower() in l):
+    if (r_sheet.cell_value(k,0).lower() in l): #Checking if a previous mail has been replied 
         for u in range(0,9):
-            w_sheet.write(l.index(sheetlocat.cell_value(k,0).lower()),u,sheetlocat.cell_value(k,u))
-        #w_sheet.write(l.index(sheetlocat.cell_value(k,0).lower()),2,sheetlocat.cell_value(k,2))
+            w_sheet.write(l.index(sheetlocat.cell_value(k,0).lower()),u,sheetlocat.cell_value(k,u)) #If it has been replied new status is copied
         for o in range(0,9):
-            w_sheet.write(k,o,"")
+            w_sheet.write(k,o,"") #Reply mail is cleared only original mail remains
 
-wblo.save('fin2.xls')
+wblo.save('fin2.xls') #final excel is stored is here
+
 #GUI is added below
 
 from tkinter import *
 import tkinter.ttk
-m= tkinter.Tk()
+m= tkinter.Tk() #root window
 m.withdraw()
 from tkinter import messagebox
 
-
-canvas = Canvas(m, width = m.winfo_screenwidth(), height = 150)
-img = PhotoImage(file="image.ppm")
-canvas.create_image((m.winfo_screenwidth()-300)/2,2, anchor=NW, image=img)
+canvas = Canvas(m, width = m.winfo_screenwidth(), height = 150) #canvas for image
+img = PhotoImage(file="image.ppm") #Tata BITS logo
+canvas.create_image((m.winfo_screenwidth()-300)/2,2, anchor=NW, image=img) #attaching image 
 canvas.pack()
 
-m.state('zoomed')
+m.state('zoomed') #opening window in max size
 
-m.title ('Major Event Manager V-1.0')
+m.title ('Major Event Manager V-1.0') #title of the window
 
-tree = tkinter.ttk.Treeview(m, show = 'headings')
-tkinter.ttk.Style().configure('Treeview',rowheight=30)
-tree["columns"] = ("1", "2","3","4","5","6","7","8","9")
-tree.column("1", minwidth=700,width=700,stretch=False)
+tree = tkinter.ttk.Treeview(m, show = 'headings') #heading of each column
+tkinter.ttk.Style().configure('Treeview',rowheight=30) #Treeview
+tree["columns"] = ("1", "2","3","4","5","6","7","8","9") #columns
+tree.column("1", minwidth=700,width=700,stretch=False) #attributes of each column
 tree.column("2", minwidth=40,width=40,stretch=False)
 tree.column("3", minwidth=50,width=50,stretch=False)
 tree.column("4", minwidth=650,width=650,stretch=False)
@@ -126,7 +123,7 @@ tree.column("6", minwidth=150,width=150,stretch=False)
 tree.column("7", minwidth=400,width=400,stretch=False)
 tree.column("8",  minwidth=90,width=90,stretch=False)
 tree.column("9", minwidth=3000,width=3000,stretch=False)
-
+#Name of each column
 tree.heading("1", text="Subject")
 tree.heading("2", text="Type")
 tree.heading("3", text="Status")
@@ -137,21 +134,20 @@ tree.heading("7", text="Customers Affected")
 tree.heading("8", text="Ticket number")
 tree.heading("9", text="RFO")
 #Sender	Type	Status	Update	Start Date	End Date	Customers affected	Ticket number
-display_text = tkinter.StringVar()
+display_text = tkinter.StringVar() #Year display
 display_text.set('')
 
-monthtext= tkinter.StringVar()
+monthtext= tkinter.StringVar() #month display
 monthtext.set("Please select month")
 w = Label(m, textvariable=display_text)
 w.pack()
 v = Label(m, textvariable=monthtext)
 v.pack()
-display_text.set(str(datetime.now().year))
+display_text.set(str(datetime.now().year)) #Current year
 year=str(datetime.now().year)
 tree.tag_configure('ttk', background='yellow')
-#button=tkinter.Button(m,activebackground="blue",activeforeground="white")
-#button.pack()
-location=("./fin2.xls")
+
+location=("./fin2.xls") #opening final sheet
 work = xlrd.open_workbook(location)
 sheetf = work.sheet_by_index(0)
 rowf = sheetf.row(0)  # 1st row
@@ -159,149 +155,148 @@ sheetf.cell_value(0, 0)
 display_open = tkinter.StringVar()
 display_monitor = tkinter.StringVar()
 display_closed = tkinter.StringVar()
+#displaying all MEs 
 def complete():
-    global closed_count
+    global closed_count #closed MEs
     closed_count = 0
-    global open_count
+    global open_count #open MEs
     open_count = 0
-    global m_count
+    global m_count #monitor MEs
     m_count = 0
-    tree.delete(*tree.get_children())
-    sheetf = work.sheet_by_index(0)
+    tree.delete(*tree.get_children()) #clearing treeview
+    sheetf = work.sheet_by_index(0) #opening sheets
     rowf = sheetf.row(0)  # 1st row
     sheetf.cell_value(0, 0)
-    for j in range(0, sheetf.nrows):
+    for j in range(0, sheetf.nrows): #iterating through sheet
         h = []
         for y in range(0, 9):
-            h.append(sheetf.cell_value(j, y))
+            h.append(sheetf.cell_value(j, y)) #making list of each row
         if h[0]!="":
-            if (h[2]=="Closed"):
-                tree.insert("", j, values=h, tags="closed")
-                closed_count =closed_count+ 1
-            elif (h[2]=="Monitor"):
-                tree.insert("", j, values=h, tags="monitor")
-                m_count=m_count+1
+            if (h[2]=="Closed"): #closed ME
+                tree.insert("", j, values=h, tags="closed") #inserting list in rows
+                closed_count =closed_count+ 1 #closed ME count
+            elif (h[2]=="Monitor"): #monitor ME
+                tree.insert("", j, values=h, tags="monitor") #inserting list in rows
+                m_count=m_count+1 #monitor ME count
             else:
-                tree.insert("", j, values=h, tags="open")
-                open_count=open_count+1
+                tree.insert("", j, values=h, tags="open") #inserting list in rows
+                open_count=open_count+1 #open ME count
 
-    tree.tag_configure('closed', background='green')
+    tree.tag_configure('closed', background='green') #changing colors
     tree.tag_configure('monitor', background='yellow')
     tree.tag_configure('open', background='red')
     tree.pack()
-    #display_open = tkinter.StringVar()
-    display_open.set("Open: "+str(open_count))
-    #display_monitor = tkinter.StringVar()
+    display_open.set("Open: "+str(open_count)) #displaying count
     display_monitor.set("Monitor: "+str(m_count))
-    #display_closed = tkinter.StringVar()
     display_closed.set("Closed: "+str(closed_count))
 complete()
-#scroll-bars
+#Adding scroll-bars
 tree.pack(fill = 'both', expand = 'Yes')
-xscrollbar = tkinter.ttk.Scrollbar(tree,orient=HORIZONTAL)
+xscrollbar = tkinter.ttk.Scrollbar(tree,orient=HORIZONTAL) #Horizontal scroll bars
 xscrollbar.config (command = tree.xview,orient=HORIZONTAL)
-yscrollbar = tkinter.ttk.Scrollbar(tree,orient=VERTICAL)
+yscrollbar = tkinter.ttk.Scrollbar(tree,orient=VERTICAL) #Vertical scroll bars
 yscrollbar.config (command = tree.yview,orient=VERTICAL)
-tree.configure(yscrollcommand=yscrollbar.set , xscrollcommand=xscrollbar.set)
-xscrollbar.pack(side=BOTTOM,fill='x')
+tree.configure(yscrollcommand=yscrollbar.set , xscrollcommand=xscrollbar.set) #attaching it to tree
+xscrollbar.pack(side=BOTTOM,fill='x') 
 yscrollbar.pack(side=RIGHT,fill='y')
 tree.configure(yscrollcommand=yscrollbar.set , xscrollcommand=xscrollbar.set)
+#For year (default is current year)
 def donothing(n):
   global display_text
   global year
-  display_text.set(n)
-  monthtext.set("Please set month")
+  display_text.set(n) #setting current year
+  monthtext.set("Please set month") 
   year = n
-
+#Sorting MEs according to month
 def month(n):
 
     global monthtext
-    months=["January","February","March","April","May","June","July","August","September","October","November","December"]
-    month_set=int(n)-1
-    monthtext.set(months[month_set])
-    tree.delete(*tree.get_children())
-    closed_mcount=0
-    open_mcount=0
-    monitor_mcount=0
-    sheetsorm=work.sheet_by_index(0)
+    months=["January","February","March","April","May","June","July","August","September","October","November","December"] #list of months
+    month_set=int(n)-1 #subtracting to access list
+    monthtext.set(months[month_set]) #Setting month display
+    tree.delete(*tree.get_children()) #clearing treeview
+    closed_mcount=0 #number of closed MEs
+    open_mcount=0 #number of open MEs
+    monitor_mcount=0 #number of monitor MEs
+    sheetsorm=work.sheet_by_index(0) #opening sheet
     rowsor = sheetsorm.row(0)
-    for qm in range(0, sheetsorm.nrows):
+    for qm in range(0, sheetsorm.nrows): #iterating through rows
         hlm = []
 
-        if sheetsorm.cell_value(qm,0) != "":
-            workm=sheetsorm.cell_value(qm, 4).lstrip()
-            if workm[5:7] == n and workm[0:4] == year:
+        if sheetsorm.cell_value(qm,0) != "": #leaving empty rows
+            workm=sheetsorm.cell_value(qm, 4).lstrip() #making date readable
+            if workm[5:7] == n and workm[0:4] == year: #matching proper month and year 
                 for zm in range(0, 9):
-                    hlm.append(sheetsorm.cell_value(qm, zm))
+                    hlm.append(sheetsorm.cell_value(qm, zm)) #making list of each row
                 if hlm[0] != "":
-                    if (hlm[2] == "Closed"):
-                        tree.insert("", qm, values=hlm, tags="closed")
-                        closed_mcount=closed_mcount+1
+                    if (hlm[2] == "Closed"): 
+                        tree.insert("", qm, values=hlm, tags="closed") #inserting list in rows
+                        closed_mcount=closed_mcount+1 #counting closed MEs
                     elif (hlm[2] == "Monitor"):
-                        tree.insert("", qm, values=hlm, tags="monitor")
-                        monitor_mcount=monitor_mcount+1
+                        tree.insert("", qm, values=hlm, tags="monitor") #inserting list in rows
+                        monitor_mcount=monitor_mcount+1 #counting monitor MEs
                     else:
-                        tree.insert("", qm, values=hlm, tags="open")
-                        open_mcount=open_mcount+1
+                        tree.insert("", qm, values=hlm, tags="open") #inserting list in rows
+                        open_mcount=open_mcount+1 #counting monitor MEs
 
-    tree.tag_configure('closed', background='green')
-    tree.tag_configure('monitor', background='yellow')
+    tree.tag_configure('closed', background='green') #changing color of each ME
+    tree.tag_configure('monitor', background='yellow') 
     tree.tag_configure('open', background='red')
     tree.pack()
-    display_open.set("Open: "+str(open_mcount))
+    display_open.set("Open: "+str(open_mcount)) #setting open/monitor/closed count
     display_monitor.set("Monitor: "+str(monitor_mcount))
     display_closed.set("Closed: "+str(closed_mcount))
-
+#Sorts MEs according to their status
 def status(n):
-    tree.delete(*tree.get_children())
-    sheetsor = work.sheet_by_index(0)
+    tree.delete(*tree.get_children())#clearing treeview
+    sheetsor = work.sheet_by_index(0)#opening sheet
     rowsor = sheetsor.row(0)
-    for q in range(0, sheetsor.nrows):
+    for q in range(0, sheetsor.nrows):#iterating through rows
         hl = []
-        if sheetsor.cell_value(q, 0) != "":
-            if sheetsor.cell_value(q, 2) == n :
+        if sheetsor.cell_value(q, 0) != "": #leaving empty rows
+            if sheetsor.cell_value(q, 2) == n : #selecting relevant MEs
 
-                for z in range(0, 9):
-                    hl.append(sheetsor.cell_value(q, z))
-                tree.insert("", q, values=hl,tags="indi")
+                for z in range(0, 9):       #filling columns
+                    hl.append(sheetsor.cell_value(q, z))  #making a list for each row
+                tree.insert("", q, values=hl,tags="indi") #inserting each list in row
 
-    tree.tag_configure('indi', background='light blue')
+    tree.tag_configure('indi', background='light blue') #color of the displayed text
     tree.pack()
 def popup_showinfo():
-    messagebox.showinfo("About", "Hello! Please report bugs at: \n \n f20160184@hyderabad.bits-pilani.ac.in \n \n +91 9603028007  \n \n Developed by- Shubham Sharma")
+    messagebox.showinfo("About", "Hello! Please report bugs at: \n \n f20160184@hyderabad.bits-pilani.ac.in \n \n +91 9603028007  \n \n Developed by- Shubham Sharma") #Shows about box
 
+#On Selection copy of column elements
 def copy_ticket(event):
-    curItem = tree.focus()
-    m.clipboard_clear()
-    x_pos = tree.winfo_pointerx()
-    col = tree.identify_column(x_pos)
-    column=int(col[1:])-1
-    m.clipboard_append(tree.item(curItem)["values"][column])
-    
-    m.update()
+    curItem = tree.focus() #It focuses on a certain row (selected)
+    m.clipboard_clear() #clears clipboard
+    x_pos = tree.winfo_pointerx() #gives the position of cursor
+    col = tree.identify_column(x_pos) #identifies column based on cursor position
+    column=int(col[1:])-1   #Converting column format to integer
+    m.clipboard_append(tree.item(curItem)["values"][column]) #copying column content to clipboard
+    m.update() #updates the clipboard
 
-tree.bind("<<TreeviewSelect>>",copy_ticket)
-display_open = tkinter.StringVar()
-display_open.set("Open: "+str(open_count))
-display_monitor = tkinter.StringVar()
-display_monitor.set("Monitor: "+str(m_count))
-display_closed = tkinter.StringVar()
-display_closed.set("Closed: "+str(closed_count))
+tree.bind("<<TreeviewSelect>>",copy_ticket) #binding row select to the method
+display_open = tkinter.StringVar() #to display number of open MEs
+display_open.set("Open: "+str(open_count))# setting value of open MEs
+display_monitor = tkinter.StringVar()#to display number of monitored MEs
+display_monitor.set("Monitor: "+str(m_count))#setting value of monitored MEs
+display_closed = tkinter.StringVar()#to display number of closed MEs
+display_closed.set("Closed: "+str(closed_count))#setting number of closed MEs
 
-q= Label(m, textvariable=display_open)
+q= Label(m, textvariable=display_open) #displaying open MEs
 q.pack()
-mon_d= Label(m, textvariable=display_monitor)
+mon_d= Label(m, textvariable=display_monitor) #displaying monitored MEs
 mon_d.pack()
-r= Label(m, textvariable=display_closed)
+r= Label(m, textvariable=display_closed) #dispaying closed MEs
 r.pack()
-
+#Top left side menu of Tkinter
 menu = Menu(m)
 m.config(menu=menu)
 yearmenu = Menu(menu, tearoff=0)
 filemenu = Menu(menu, tearoff=0)
 statusmenu=Menu(menu, tearoff=0)
 menu.add_cascade(label='Year', menu=yearmenu)
-
+#Year menu
 yearmenu.add_command(label='2018', command=partial(donothing,'2018'))
 yearmenu.add_command(label='2019', command=partial(donothing,'2019'))
 yearmenu.add_command(label='2020', command=partial(donothing,'2020'))
@@ -309,7 +304,7 @@ yearmenu.add_command(label='2021', command=partial(donothing,'2021'))
 yearmenu.add_command(label='2022', command=partial(donothing,'2022'))
 yearmenu.add_command(label='2023', command=partial(donothing,'2023'))
 menu.add_cascade(label='Month', menu=filemenu)
-
+#Month Menu
 filemenu.add_command(label='Display All', command=complete)
 filemenu.add_command(label='January', command=partial(month,'01'))
 filemenu.add_command(label='February', command=partial(month,'02'))
@@ -324,16 +319,17 @@ filemenu.add_command(label='October', command=partial(month,'10'))
 filemenu.add_command(label='November', command=partial(month,'11'))
 filemenu.add_command(label='December', command=partial(month,'12'))
 menu.add_cascade(label='Status', menu=statusmenu)
-
+#Status Menu
 statusmenu.add_command(label='Open', command=partial(status,'Open'))
 statusmenu.add_command(label='Monitor', command=partial(status,'Monitor'))
 statusmenu.add_command(label='Close', command=partial(status,'Closed'))
 filemenu.add_separator()
 filemenu.add_command(label='Exit', command=m.quit)
+#Help Menu
 helpmenu = Menu(menu, tearoff=0)
 menu.add_cascade(label='Help', menu=helpmenu)
-
 helpmenu.add_command(label='About',command=popup_showinfo)
 
 m.config(menu=menu)
+#Final loop
 m.mainloop()
