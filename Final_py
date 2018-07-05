@@ -117,15 +117,15 @@ m.title ('Major Event Manager V-1.0')
 tree = tkinter.ttk.Treeview(m, show = 'headings')
 tkinter.ttk.Style().configure('Treeview',rowheight=30)
 tree["columns"] = ("1", "2","3","4","5","6","7","8","9")
-tree.column("1", width=300)
+tree.column("1", minwidth=700,width=700,stretch=False)
 tree.column("2", minwidth=40,width=40,stretch=False)
 tree.column("3", minwidth=50,width=50,stretch=False)
-tree.column("4", width=300)
-tree.column("5", minwidth=70,width=70,stretch=False)
-tree.column("6", minwidth=70,width=70,stretch=False)
-tree.column("7", width=300)
+tree.column("4", minwidth=650,width=650,stretch=False)
+tree.column("5", minwidth=150,width=150,stretch=False)
+tree.column("6", minwidth=150,width=150,stretch=False)
+tree.column("7", minwidth=400,width=400,stretch=False)
 tree.column("8",  minwidth=90,width=90,stretch=False)
-tree.column("9", width=200)
+tree.column("9", minwidth=3000,width=3000,stretch=False)
 
 tree.heading("1", text="Subject")
 tree.heading("2", text="Type")
@@ -196,9 +196,16 @@ def complete():
     #display_closed = tkinter.StringVar()
     display_closed.set("Closed: "+str(closed_count))
 complete()
+#scroll-bars
 tree.pack(fill = 'both', expand = 'Yes')
-
-
+xscrollbar = tkinter.ttk.Scrollbar(tree,orient=HORIZONTAL)
+xscrollbar.config (command = tree.xview,orient=HORIZONTAL)
+yscrollbar = tkinter.ttk.Scrollbar(tree,orient=VERTICAL)
+yscrollbar.config (command = tree.yview,orient=VERTICAL)
+tree.configure(yscrollcommand=yscrollbar.set , xscrollcommand=xscrollbar.set)
+xscrollbar.pack(side=BOTTOM,fill='x')
+yscrollbar.pack(side=RIGHT,fill='y')
+tree.configure(yscrollcommand=yscrollbar.set , xscrollcommand=xscrollbar.set)
 def donothing(n):
   global display_text
   global year
@@ -266,7 +273,11 @@ def popup_showinfo():
 def copy_ticket(event):
     curItem = tree.focus()
     m.clipboard_clear()
-    m.clipboard_append(tree.item(curItem)["values"][7])
+    x_pos = tree.winfo_pointerx()
+    col = tree.identify_column(x_pos)
+    column=int(col[1:])-1
+    m.clipboard_append(tree.item(curItem)["values"][column])
+    
     m.update()
 
 tree.bind("<<TreeviewSelect>>",copy_ticket)
